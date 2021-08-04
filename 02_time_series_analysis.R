@@ -22,6 +22,7 @@ diagnostic_root            <- file.path(project_root, "03_diagnostics")
 prepped_data_path          <- file.path(data_root, "prepped_data.csv")
 disruption_ratio_data_path <- file.path(data_root, "disruption.csv")
 
+
 #----FUNCTIONS---------------------------------------------------------------------------------------------------------
 
 #--- 1. GET DATA: DOSES ADMINISTERED --------------------------------------------------------------------------------
@@ -34,8 +35,11 @@ disruption_data <- fread(disruption_ratio_data_path,
 
 
 # Add date
-data[, date := as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%m-%d")]
+data[, date := as.Date(paste("2020", month, "01", sep = "-"), format = "%Y-%m-%d")] # Intentionally set 2020 as default
 disruption_data[, date := as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%m-%d")]
+
+# Format dose data for overlayed comparison of years
+data$year <- factor(data$year, levels = rev(2017:2020))
 
 # Get district for ease of plotting
 districts   <- sort(unique(data$district))
@@ -70,16 +74,21 @@ for(i in seq.int(n_panels)) {
   index_district_end    <- i * 6 
   districts_of_interest <- districts[index_district_start:index_district_end] 
   
-  gg <- ggplot(data[district %in% districts_of_interest], mapping = aes(x = date, y = mr1)) +
+  gg <- ggplot(data[district %in% districts_of_interest & year %in% c(2019, 2020)], mapping = aes(x = date, y = mr1, color = year)) +
     geom_point() +
     geom_line() +
-    ylim(c(0, y_max_mr1)) +
+    # scale_colour_viridis_d() +
+    # ylim(c(0, y_max_mr1)) +
+    labs(color = "Year") +
     ylab("Doses Administered") +
+    scale_x_date(date_labels = "%b", 
+                 date_breaks  ="2 month") +
     ggtitle("MR1: Doses Administered") +
-    facet_wrap(~ district) +
+    facet_wrap(~ district, 
+               scales = "free_y") +
     theme_bw() +
-    theme(axis.title.x = element_blank()) 
-
+    theme(axis.title.x = element_blank(), 
+          axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
   plot(gg)
   
 }
@@ -93,16 +102,21 @@ for(i in seq.int(n_panels)) {
   index_district_end    <- i * 6 
   districts_of_interest <- districts[index_district_start:index_district_end] 
   
-  gg <- ggplot(data[district %in% districts_of_interest], mapping = aes(x = date, y = dpt3)) +
+  gg <- ggplot(data[district %in% districts_of_interest & year %in% c(2019, 2020)], mapping = aes(x = date, y = dpt3, color = year)) +
     geom_point() +
     geom_line() +
-    ylim(c(0, y_max_dpt3)) +
+    # scale_colour_viridis_d() +
+    # ylim(c(0, y_max_dpt3)) +
+    labs(color = "Year") +
     ylab("Doses Administered") +
+    scale_x_date(date_labels = "%b", 
+                 date_breaks  ="2 month") +
     ggtitle("DPT3: Doses Administered") +
-    facet_wrap(~ district) +
+    facet_wrap(~ district, 
+               scales = "free_y") +
     theme_bw() +
-    theme(axis.title.x = element_blank())
-  
+    theme(axis.title.x = element_blank(), 
+          axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))  
   plot(gg)
 }
 
@@ -167,7 +181,6 @@ for(i in seq.int(n_panels)) {
   plot(gg)
   
 }
-
 
 
 
